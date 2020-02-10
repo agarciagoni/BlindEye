@@ -324,7 +324,7 @@ class TfPoseEstimator:
                 minimum_segment_size=3,
                 is_dynamic_op=True,
                 maximum_cached_engines=int(1e3),
-                use_calibration=True,
+               # use_calibration=True,
             )
 
         self.graph = tf.get_default_graph()

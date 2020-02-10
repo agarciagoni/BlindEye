@@ -2,6 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+sys.path.insert(0,'/usr/local/lib/python3.7/site-packages')
+print(sys.path)
+
 import os
 import subprocess
 import setuptools

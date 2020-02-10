@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <title>Blind-Eye</title>
+
+  <link href='fonts.css' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="material.min.css">
+  <link rel="stylesheet" href="owl.carousel.min.css">
+  <link rel="stylesheet" href="owl.theme.default.min.css">
+  <link rel="stylesheet" href="common_styles.css">
+  <link rel="stylesheet" href="assignment_styles.css">
+    
+  <script type="text/javascript" src="jquery-3.4.0.js"></script>
+  <script defer type="text/javascript" src="material.min.js"></script>
+  <script src="owl.carousel.min.js"></script>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+
+</head>
+
+<body class="mdl-layout mdl-layout--fixed-header mdl-js-layout mdl-color--grey-100">
+  <header class="mdl-layout__header mdl-layout__header--scroll mdl-color--grey-100 mdl-color-text--grey-800">
+    <h1 class="mdl-layout-title"> Blind-Eye </h1>
+  </header>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  <div id="s04-ribbon"></div>
+
+  <div class="mdl-layout__content">
+    <main id="s04-main" class="mdl-color--white mdl-shadow--4dp mdl-color-text--grey-800 mdl-grid">
+      <!-- Result labels -->
+      
+      <h2>MIT Media Lab City Science Blind-Eye</h2>
+
+      <div>
+        <p>Select a mode:</p>
+        <span id="current_map"></span>
+        <button id="initial_map" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored round-button small-button">...</button>
+        <ul id="map_list" class="mdl-menu mdl-js-menu mdl-js-ripple-effect" for="initial_map">
+          <li><a href="index.html"><button id="activity">Activity Tracker</button></a></li>
+          <li><a href="translate.html"><button id="activity">Translate It</button></a></li>
+          <li><a href="smart_home.html"><button id="activity">Smart Home</button></a></li>
+        </ul>
+      </div>
+
+      <hr>
+      <h2>Main activities:</h2>
+      <br>
+      <h4>Sitting</h4>
+      <div id='sitting' class="jumbotron" style="height:50px"></div>
+      <h4>Standing</h4>
+      <div id='standing' class="jumbotron" style="height:50px"></div>
+      <h4>Laying down</h4>
+      <div id='laying' class="jumbotron" style="height:50px"></div>
+      <h4>Cooking</h4>
+      <div id='cooking' class="jumbotron" style="height:50px"></div>
+      
+
+      <div id = "status"></div>
+
+      <script type="text/javascript" src="/eel.js"></script>
+
+      <script type="text/javascript">
+
+              jQuery(document).ready(function($){
+          var transitionEnd = 'webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend';
+          var transitionsSupported = ( $('.csstransitions').length > 0 );
+          //if browser does not support transitions - use a different event to trigger them
+          if( !transitionsSupported ) transitionEnd = 'noTransition';
+          
+          //should add a loding while the events are organized 
+
+          function SchedulePlan( element ) {
+              this.element = element;
+              this.timeline = this.element.find('.timeline');
+              this.timelineItems = this.timeline.find('li');
+              this.timelineItemsNumber = this.timelineItems.length;
+              this.timelineStart = getScheduleTimestamp(this.timelineItems.eq(0).text());
+              //need to store delta (in our case half hour) timestamp
+              this.timelineUnitDuration = getScheduleTimestamp(this.timelineItems.eq(1).text()) - getScheduleTimestamp(this.timelineItems.eq(0).text());
+
+              this.eventsWrapper = this.element.find('.events');
+              this.eventsGroup = this.eventsWrapper.find('.events-group');
+              this.singleEvents = this.eventsGroup.find('.single-event');
+              this.eventSlotHeight = this.eventsGroup.eq(0).children('.top-info').outerHeight();
+
+              this.modal = this.element.find('.event-modal');
+              this.modalHeader = this.modal.find('.header');
+              this.modalHeaderBg = this.modal.find('.header-bg');
+              this.modalBody = this.modal.find('.body'); 
+              this.modalBodyBg = this.modal.find('.body-bg'); 
+              this.modalMaxWidth = 800;
+              this.modalMaxHeight = 480;
+
+              this.animating = false;
+
+              this.initSchedule();
+          }
+
+          SchedulePlan.prototype.initSchedule = function() {
+              this.scheduleReset();
+              this.initEvents();
+          };
+
+          SchedulePlan.prototype.scheduleReset = function() {
+              var mq = this.mq();
+              if( mq == 'desktop' && !this.element.hasClass('js-full') ) {
+                  //in this case you are on a desktop version (first load or resize from mobile)
+                  this.eventSlotHeight = this.eventsGroup.eq(0).children('.top-info').outerHeight();
+                  this.element.addClass('js-full');
+                  this.placeEvents();
+                  this.element.hasClass('modal-is-open') && this.checkEventModal();
+              } else if(  mq == 'mobile' && this.element.hasClass('js-full') ) {
+                  //in this case you are on a mobile version (first load or resize from desktop)
+                  this.element.removeClass('js-full loading');
+                  this.eventsGroup.children('ul').add(this.singleEvents).removeAttr('style');
+                  this.eventsWrapper.children('.grid-line').remove();
+                  this.element.hasClass('modal-is-open') && this.checkEventModal();
+              } else if( mq == 'desktop' && this.element.hasClass('modal-is-open')){
+                  //on a mobile version with modal open - need to resize/move modal window
+                  this.checkEventModal('desktop');
+                  this.element.removeClass('loading');
+              } else {
+                  this.element.removeClass('loading');
+              }
+          };
+
+          SchedulePlan.prototype.initEvents = function() {
+              var self = this;
+
+              this.singleEvents.each(function(){
+                  //create the .event-date element for each event
+                  var durationLabel = '<span class="event-date">'+$(this).data('start')+' - '+$(this).data('end')+'</span>';
+                  $(this).children('a').prepend($(durationLabel));
+
+                  //detect click on the event and open the modal
+                  $(this).on('click', 'a', function(event){
+                      event.preventDefault();
+                      if( !self.animating ) self.openModal($(this));
+                  });
+              });
+
+              //close modal window
+              this.modal.on('click', '.close', function(event){
+                  event.preventDefault();
+                  if( !self.animating ) self.closeModal(self.eventsGroup.find('.selected-event'));
+              });
+              this.element.on('click', '.cover-layer', function(event){
+                  if( !self.animating && self.element.hasClass('modal-is-open') ) self.closeModal(self.eventsGroup.find('.selected-event'));
+              });
+          };
+
+          SchedulePlan.prototype.placeEvents = function() {
+              var self = this;
+              this.singleEvents.each(function(){
+                  //place each event in the grid -> need to set top position and height
+                  var start = getScheduleTimestamp($(this).attr('data-start')),
+                      duration = getScheduleTimestamp($(this).attr('data-end')) - start;
+
+                  var eventTop = self.eventSlotHeight*(start - self.timelineStart)/self.timelineUnitDuration,
+                      eventHeight = self.eventSlotHeight*duration/self.timelineUnitDuration;
+                  
+                  $(this).css({
+                      top: (eventTop -1) +'px',
+                      height: (eventHeight+1)+'px'
+                  });
+              });
+
+              this.element.removeClass('loading');
+          };
+
+          SchedulePlan.prototype.openModal = function(event) {
+              var self = this;
+              var mq = self.mq();
+              this.animating = true;
+
+              //update event name and time
+              this.modalHeader.find('.event-name').text(event.find('.event-name').text());
+              this.modalHeader.find('.event-date').text(event.find('.event-date').text());
+              this.modal.attr('data-event', event.parent().attr('data-event'));
+
+              //update event content
+              this.modalBody.find('.event-info').load(event.parent().attr('data-content')+'.html .event-info > *', function(data){
+                  //once the event content has been loaded
+                  self.element.addClass('content-loaded');
+              });
+
+              this.element.addClass('modal-is-open');
+
+              setTimeout(function(){
+                  //fixes a flash when an event is selected - desktop version only
+                  event.parent('li').addClass('selected-event');
+              }, 10);
+
+              if( mq == 'mobile' ) {
+                  self.modal.one(transitionEnd, function(){
+                      self.modal.off(transitionEnd);
+                      self.animating = false;
+                  });
+              } else {
+                  var eventTop = event.offset().top - $(window).scrollTop(),
+                      eventLeft = event.offset().left,
+                      eventHeight = event.innerHeight(),
+                      eventWidth = event.innerWidth();
+
+                  var windowWidth = $(window).width(),
+                      windowHeight = $(window).height();
+
+                  var modalWidth = ( windowWidth*.8 > self.modalMaxWidth ) ? self.modalMaxWidth : windowWidth*.8,
+                      modalHeight = ( windowHeight*.8 > self.modalMaxHeight ) ? self.modalMaxHeight : windowHeight*.8;
+
+                  var modalTranslateX = parseInt((windowWidth - modalWidth)/2 - eventLeft),
+                      modalTranslateY = parseInt((windowHeight - modalHeight)/2 - eventTop);
+                  
+                  var HeaderBgScaleY = modalHeight/eventHeight,
+                      BodyBgScaleX = (modalWidth - eventWidth);
+
+                  //change modal height/width and translate it
+                  self.modal.css({
+                      top: eventTop+'px',
+                      left: eventLeft+'px',
+                      height: modalHeight+'px',
+                      width: modalWidth+'px',
+                  });
+                  transformElement(self.modal, 'translateY('+modalTranslateY+'px) translateX('+modalTranslateX+'px)');
+
+                  //set modalHeader width
+                  self.modalHeader.css({
+                      width: eventWidth+'px',
+                  });
+                  //set modalBody left margin
+                  self.modalBody.css({
+                      marginLeft: eventWidth+'px',
+                  });
+
+                  //change modalBodyBg height/width ans scale it
+                  self.modalBodyBg.css({
+                      height: eventHeight+'px',
+                      width: '1px',
+                  });
+                  transformElement(self.modalBodyBg, 'scaleY('+HeaderBgScaleY+') scaleX('+BodyBgScaleX+')');
+
+                  //change modal modalHeaderBg height/width and scale it
+                  self.modalHeaderBg.css({
+                      height: eventHeight+'px',
+                      width: eventWidth+'px',
+                  });
+                  transformElement(self.modalHeaderBg, 'scaleY('+HeaderBgScaleY+')');
+                  
+                  self.modalHeaderBg.one(transitionEnd, function(){
+                      //wait for the  end of the modalHeaderBg transformation and show the modal content
+                      self.modalHeaderBg.off(transitionEnd);
+                      self.animating = false;
+                      self.element.addClass('animation-completed');
+                  });
+              }
+
+              //if browser do not support transitions -> no need to wait for the end of it
+              if( !transitionsSupported ) self.modal.add(self.modalHeaderBg).trigger(transitionEnd);
+          };
+
+          SchedulePlan.prototype.closeModal = function(event) {
+              var self = this;
+              var mq = self.mq();
+
+              this.animating = true;
+
+              if( mq == 'mobile' ) {
+                  this.element.removeClass('modal-is-open');
+                  this.modal.one(transitionEnd, function(){
+                      self.modal.off(transitionEnd);
+                      self.animating = false;
+                      self.element.removeClass('content-loaded');
+                      event.removeClass('selected-event');
+                  });
+              } else {
+                  var eventTop = event.offset().top - $(window).scrollTop(),
+                      eventLeft = event.offset().left,
+                      eventHeight = event.innerHeight(),
+                      eventWidth = event.innerWidth();
+
+                  var modalTop = Number(self.modal.css('top').replace('px', '')),
+                      modalLeft = Number(self.modal.css('left').replace('px', ''));
+
+                  var modalTranslateX = eventLeft - modalLeft,
+                      modalTranslateY = eventTop - modalTop;
+
+                  self.element.removeClass('animation-completed modal-is-open');
+
+                  //change modal width/height and translate it
+                  this.modal.css({
+                      width: eventWidth+'px',
+                      height: eventHeight+'px'
+                  });
+                  transformElement(self.modal, 'translateX('+modalTranslateX+'px) translateY('+modalTranslateY+'px)');
+                  
+                  //scale down modalBodyBg element
+                  transformElement(self.modalBodyBg, 'scaleX(0) scaleY(1)');
+                  //scale down modalHeaderBg element
+                  transformElement(self.modalHeaderBg, 'scaleY(1)');
+
+                  this.modalHeaderBg.one(transitionEnd, function(){
+                      //wait for the  end of the modalHeaderBg transformation and reset modal style
+                      self.modalHeaderBg.off(transitionEnd);
+                      self.modal.addClass('no-transition');
+                      setTimeout(function(){
+                          self.modal.add(self.modalHeader).add(self.modalBody).add(self.modalHeaderBg).add(self.modalBodyBg).attr('style', '');
+                      }, 10);
+                      setTimeout(function(){
+                          self.modal.removeClass('no-transition');
+                      }, 20);
+
+                      self.animating = false;
+                      self.element.removeClass('content-loaded');
+                      event.removeClass('selected-event');
+                  });
+              }
+
+              //browser do not support transitions -> no need to wait for the end of it
+              if( !transitionsSupported ) self.modal.add(self.modalHeaderBg).trigger(transitionEnd);
+          }
+
+          SchedulePlan.prototype.mq = function(){
+              //get MQ value ('desktop' or 'mobile') 
+              var self = this;
+              return window.getComputedStyle(this.element.get(0), '::before').getPropertyValue('content').replace(/["']/g, '');
+          };
+
+          SchedulePlan.prototype.checkEventModal = function(device) {
+              this.animating = true;
+              var self = this;
+              var mq = this.mq();
+
+              if( mq == 'mobile' ) {
+                  //reset modal style on mobile
+                  self.modal.add(self.modalHeader).add(self.modalHeaderBg).add(self.modalBody).add(self.modalBodyBg).attr('style', '');
+                  self.modal.removeClass('no-transition');    
+                  self.animating = false; 
+              } else if( mq == 'desktop' && self.element.hasClass('modal-is-open') ) {
+                  self.modal.addClass('no-transition');
+                  self.element.addClass('animation-completed');
+                  var event = self.eventsGroup.find('.selected-event');
+
+                  var eventTop = event.offset().top - $(window).scrollTop(),
+                      eventLeft = event.offset().left,
+                      eventHeight = event.innerHeight(),
+                      eventWidth = event.innerWidth();
+
+                  var windowWidth = $(window).width(),
+                      windowHeight = $(window).height();
+
+                  var modalWidth = ( windowWidth*.8 > self.modalMaxWidth ) ? self.modalMaxWidth : windowWidth*.8,
+                      modalHeight = ( windowHeight*.8 > self.modalMaxHeight ) ? self.modalMaxHeight : windowHeight*.8;
+
+                  var HeaderBgScaleY = modalHeight/eventHeight,
+                      BodyBgScaleX = (modalWidth - eventWidth);
+
+                  setTimeout(function(){
+                      self.modal.css({
+                          width: modalWidth+'px',
+                          height: modalHeight+'px',
+                          top: (windowHeight/2 - modalHeight/2)+'px',
+                          left: (windowWidth/2 - modalWidth/2)+'px',
+                      });
+                      transformElement(self.modal, 'translateY(0) translateX(0)');
+                      //change modal modalBodyBg height/width
+                      self.modalBodyBg.css({
+                          height: modalHeight+'px',
+                          width: '1px',
+                      });
+                      transformElement(self.modalBodyBg, 'scaleX('+BodyBgScaleX+')');
+                      //set modalHeader width
+                      self.modalHeader.css({
+                          width: eventWidth+'px',
+                      });
+                      //set modalBody left margin
+                      self.modalBody.css({
+                          marginLeft: eventWidth+'px',
+                      });
+                      //change modal modalHeaderBg height/width and scale it
+                      self.modalHeaderBg.css({
+                          height: eventHeight+'px',
+                          width: eventWidth+'px',
+                      });
+                      transformElement(self.modalHeaderBg, 'scaleY('+HeaderBgScaleY+')');
+                  }, 10);
+
+                  setTimeout(function(){
+                      self.modal.removeClass('no-transition');
+                      self.animating = false; 
+                  }, 20);
+              }
+          };
+
+          var schedules = $('.cd-schedule');
+          var objSchedulesPlan = [],
+              windowResize = false;
+          
+          if( schedules.length > 0 ) {
+              schedules.each(function(){
+                  //create SchedulePlan objects
+                  objSchedulesPlan.push(new SchedulePlan($(this)));
+              });
+          }
+
+          $(window).on('resize', function(){
+              if( !windowResize ) {
+                  windowResize = true;
+                  (!window.requestAnimationFrame) ? setTimeout(checkResize) : window.requestAnimationFrame(checkResize);
+              }
+          });
+
+          $(window).keyup(function(event) {
+              if (event.keyCode == 27) {
+                  objSchedulesPlan.forEach(function(element){
+                      element.closeModal(element.eventsGroup.find('.selected-event'));
+                  });
+              }
+          });
+
+          function checkResize(){
+              objSchedulesPlan.forEach(function(element){
+                  element.scheduleReset();
+              });
+              windowResize = false;
+          }
+
+          function getScheduleTimestamp(time) {
+              //accepts hh:mm format - convert hh:mm to timestamp
+              time = time.replace(/ /g,'');
+              var timeArray = time.split(':');
+              var timeStamp = parseInt(timeArray[0])*60 + parseInt(timeArray[1]);
+              return timeStamp;
+          }
+
+          function transformElement(element, value) {
+              element.css({
+                  '-moz-transform': value,
+                  '-webkit-transform': value,
+                  '-ms-transform': value,
+                  '-o-transform': value,
+                  'transform': value
+              });
+          }
+      });
+
+        //eel.expose(say_hello_js);               // Expose this function to Python
+        //function say_hello_js(x) {
+        //    console.log("Hello from " + x);
+        //}
+
+        //say_hello_js("Javascript World!");
+        
+        //status_tracker = eel.get_status();  // Call a Python function
+        
+        //Example 1
+
+        async function retrieve() {
+          console.log("IN FUNCTION");
+          const sitting =  await eel.get_sitting()();
+          const standing =  await eel.get_standing()();
+          const laying =  await eel.get_laying()();
+          const cooking =  await eel.get_cooking()();
+
+          //console.log(return_status); //this correctly logs the variable 
+
+          document.getElementById("sitting").innerHTML = sitting;
+          document.getElementById("standing").innerHTML = standing;
+          document.getElementById("laying").innerHTML = laying;
+          document.getElementById("cooking").innerHTML = cooking;
+         // setTimeout(retrieve, 500);
+          //return $log;
+        }
+        
+        retrieve();
+
+
+
+        
+//{'SITTING': [], 'STANDING': [{'start': 1582650782.339296, 'start_pos': (1377.7777777777778, 692.6086956521739)}], 'LAYING': [], 'COOKING': [], 'NOTHING': []}
+
+
+        //status = get_status();
+        //let status = 'hello'; 
+        //eel.get_status()(x => status = x);
+        //let status = await eel.get_status()();
+        //console.log(status)
+        //const main_get_status = () => {
+        //  console.log("inside main get status")
+        //  const result = retrieve()
+        //  return result
+        //}
+        
+        //console.log("SHOULD BE GETTING STATUS");
+        //const status = Promise.resolve(retrieve());
+        //var arr = [];
+        //retrieve().then(function(res) {
+          //console.log("inside then function");
+          //console.log("res", res)
+          //arr.push(res)
+        //});
+        //console.log("array", arr)
+        //status = arr[0]
+        
+
+
+          
+        
+      </script>
+
+      <!DOCTYPE html>
+<html>
+<head>
+<style>
+* {box-sizing: border-box;}
+ul {list-style-type: none;}
+body {font-family: Verdana, sans-serif;}
+
+.month {
+  padding: 70px 25px;
+  width: 100%;
+  background: #1abc9c;
+  text-align: center;
+}
+
+.month ul {
+  margin: 0;
+  padding: 0;
+}
+
+.month ul li {
+  color: white;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.month .prev {
+  float: left;
+  padding-top: 10px;
+}
+
+.month .next {
+  float: right;
+  padding-top: 10px;
+}
+
+.weekdays {
+  margin: 0;
+  padding: 10px 0;
+  background-color: #ddd;
+}
+
+.weekdays li {
+  display: inline-block;
+  width: 13.6%;
+  color: #666;
+  text-align: center;
+}
+
+.days {
+  padding: 10px 0;
+  background: #eee;
+  margin: 0;
+}
+
+.days li {
+  list-style-type: none;
+  display: inline-block;
+  width: 13.6%;
+  text-align: center;
+  margin-bottom: 5px;
+  font-size:12px;
+  color: #777;
+}
+
+.days li .active {
+  padding: 5px;
+  background: #1abc9c;
+  color: white !important
+}
+.anomaly {
+  background: red;
+  color: white !important;
+  padding: 5px
+}
+
+/* Add media queries for smaller screens */
+@media screen and (max-width:720px) {
+  .weekdays li, .days li {width: 13.1%;}
+}
+
+@media screen and (max-width: 420px) {
+  .weekdays li, .days li {width: 12.5%;}
+  .days li .active {padding: 2px;}
+}
+
+@media screen and (max-width: 290px) {
+  .weekdays li, .days li {width: 12.2%;}
+}
+</style>
+</head>
+<body>
+
+  <br />
+<div class="cd-schedule loading">
+  <div class="timeline">
+    <ul>
+      <li><span>09:00</span></li>
+      <li><span>09:30</span></li>
+      <li><span>10:00</span></li>
+      <li><span>10:30</span></li>
+      <li><span>11:00</span></li>
+      <li><span>11:30</span></li>
+      <li><span>12:00</span></li>
+      <li><span>12:30</span></li>
+      <li><span>13:00</span></li>
+      <li><span>13:30</span></li>
+      <li><span>14:00</span></li>
+      <li><span>14:30</span></li>
+      <li><span>15:00</span></li>
+      <li><span>15:30</span></li>
+      <li><span>16:00</span></li>
+      <li><span>16:30</span></li>
+      <li><span>17:00</span></li>
+      <li><span>17:30</span></li>
+      <li><span>18:00</span></li>
+    </ul>
+  </div> <!-- .timeline -->
+
+  <div class="events">
+    <ul class="wrap">
+      <li class="events-group">
+        <div class="top-info"><span>Monday</span></div>
+        <ul>
+          <li class="single-event" data-start="09:30" data-end="10:30" data-content="event-abs-circuit" data-event="event-1">
+            <a href="#0">
+              <em class="event-name">Cooking</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="11:00" data-end="12:30" data-content="event-rowing-workout" data-event="event-2">
+            <a href="#0">
+              <em class="event-name">Reading</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="14:00" data-end="15:15"  data-content="event-yoga-1" data-event="event-3">
+            <a href="#0">
+              <em class="event-name">Sowing</em>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <li class="events-group">
+        <div class="top-info"><span>Tuesday</span></div>
+
+        <ul>
+          <li class="single-event" data-start="10:00" data-end="11:00"  data-content="event-rowing-workout" data-event="event-2">
+            <a href="#0">
+              <em class="event-name">Cooking</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="11:30" data-end="13:00"  data-content="event-restorative-yoga" data-event="event-4" style="background: grey">
+            <a href="#0">
+              <em class="event-name">Working</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="13:30" data-end="15:00" data-content="event-abs-circuit" data-event="event-1">
+            <a href="#0">
+              <em class="event-name">Eating</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="15:45" data-end="16:45"  data-content="event-yoga-1" data-event="event-3">
+            <a href="#0">
+              <em class="event-name">Reading</em>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <li class="events-group">
+        <div class="top-info"><span>Wednesday</span></div>
+
+        <ul>
+          <li class="single-event" data-start="09:00" data-end="10:15" data-content="event-restorative-yoga" data-event="event-4">
+            <a href="#0">
+              <em class="event-name">Eating</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="10:45" data-end="11:45" data-content="event-yoga-1" data-event="event-3">
+            <a href="#0">
+              <em class="event-name">Doing laundry</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="12:00" data-end="13:45"  data-content="event-rowing-workout" data-event="event-2">
+            <a href="#0">
+              <em class="event-name">Reading</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="13:45" data-end="15:00" data-content="event-yoga-1" data-event="event-3">
+            <a href="#0">
+              <em class="event-name">Eating</em>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <li class="events-group">
+        <div class="top-info"><span>Thursday</span></div>
+
+        <ul>
+          <li class="single-event" data-start="09:30" data-end="10:30" data-content="event-abs-circuit" data-event="event-1">
+            <a href="#0">
+              <em class="event-name">Eating</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="12:00" data-end="13:45" data-content="event-restorative-yoga" data-event="event-4">
+            <a href="#0">
+              <em class="event-name">Reading</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="15:30" data-end="16:30" data-content="event-abs-circuit" data-event="event-1">
+            <a href="#0">
+              <em class="event-name">Watching TV</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="17:00" data-end="18:30"  data-content="event-rowing-workout" data-event="event-2">
+            <a href="#0">
+              <em class="event-name">Eating</em>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <li class="events-group">
+        <div class="top-info"><span>Friday</span></div>
+
+        <ul>
+          <li class="single-event" data-start="10:00" data-end="11:00"  data-content="event-rowing-workout" data-event="event-2">
+            <a href="#0">
+              <em class="event-name">Eating</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="12:30" data-end="14:00" data-content="event-abs-circuit" data-event="event-1">
+            <a href="#0">
+              <em class="event-name">Reading</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="15:45" data-end="16:45"  data-content="event-yoga-1" data-event="event-3">
+            <a href="#0">
+              <em class="event-name">Working</em>
+            </a>
+          </li>
+        </ul>
+      </li>
+      <!--        -->
+      <li class="events-group">
+        <div class="top-info"><span>Saturday</span></div>
+        <ul>
+          <li class="single-event" data-start="09:30" data-end="10:30" data-content="event-abs-circuit" data-event="event-1">
+            <a href="#0">
+              <em class="event-name">Eating</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="11:00" data-end="12:30" data-content="event-rowing-workout" data-event="event-2">
+            <a href="#0">
+              <em class="event-name">Reading</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="14:00" data-end="15:15"  data-content="event-yoga-1" data-event="event-3">
+            <a href="#0">
+              <em class="event-name">Napping</em>
+            </a>
+          </li>
+        </ul>
+      </li>
+<!--        -->
+      
+      <!--        -->
+      <li class="events-group">
+        <div class="top-info"><span>Sunday</span></div>
+        <ul>
+          <li class="single-event" data-start="09:30" data-end="10:30" data-content="event-abs-circuit" data-event="event-1">
+            <a href="#0">
+              <em class="event-name">Eating</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="11:00" data-end="12:30" data-content="event-rowing-workout" data-event="event-2">
+            <a href="#0">
+              <em class="event-name">Reading</em>
+            </a>
+          </li>
+
+          <li class="single-event" data-start="14:00" data-end="15:15"  data-content="event-yoga-1" data-event="event-3">
+            <a href="#0">
+              <em class="event-name">Sowing</em>
+            </a>
+          </li>
+        </ul>
+      </li>
+<!--        -->
+    </ul>
+  </div>
+
+  <div class="event-modal">
+    <header class="header">
+      <div class="content">
+        <span class="event-date"></span>
+        <h3 class="event-name"></h3>
+      </div>
+
+      <div class="header-bg"></div>
+    </header>
+
+    <div class="body">
+      <div class="event-info"></div>
+      <div class="body-bg"></div>
+    </div>
+
+    <a href="#0" class="close">Close</a>
+  </div>
+
+  <div class="cover-layer"></div>
+</div> <!-- .cd-schedule -->
+
+
+
+<div class="month">      
+  <ul>
+    <li class="prev">&#10094;</li>
+    <li class="next">&#10095;</li>
+    <li>
+      August<br>
+      <span style="font-size:18px">2017</span>
+    </li>
+  </ul>
+</div>
+
+<ul class="weekdays">
+  <li>Mo</li>
+  <li>Tu</li>
+  <li>We</li>
+  <li>Th</li>
+  <li>Fr</li>
+  <li>Sa</li>
+  <li>Su</li>
+</ul>
+
+<ul class="days">  
+  <li>1</li>
+  <span class="anomaly"><li>2</li>
+  <li>3</li>
+  <li>4</li>
+  <li>5</li>
+  <li>6</li>
+  <li>7</li>
+  <li>8</li></span>
+  <li>9</li>
+  <li><span class="active">10</span></li>
+  <li>11</li>
+  <li>12</li>
+  <li>13</li>
+  <li>14</li>
+  <li>15</li>
+  <li>16</li>
+  <li>17</li>
+  <li>18</li>
+  <li>19</li>
+  <li>20</li>
+  <li>21</li>
+  <li>22</li>
+  <li>23</li>
+  <li>24</li>
+  <li>25</li>
+  <li>26</li>
+  <li>27</li>
+  <li>28</li>
+  <li>29</li>
+  <li>30</li>
+  <li>31</li>
+
+</ul>
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+</body>
+</html>
+
+
+
+
+
+
+      <!-- Display money and lives -->
+      
+    </main>
+  </div>
+    
+</body>
+</html>
+
