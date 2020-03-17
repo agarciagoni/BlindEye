@@ -205,10 +205,10 @@ def parse_args():
     desc = 'Capture and display live camera video on Jetson TX2/TX1'
     parser = argparse.ArgumentParser(description=desc)
 ##Created for Object detection
-    parser.add_argument('--cfg', type=str, default='cfg/yolov3.cfg', help='*.cfg path')
-    parser.add_argument('--weights', type=str, default='weights/yolov3.weights', help='path to weights file')
+    parser.add_argument('--cfg', type=str, default='cfg/yolov3.cfg', help='*.cfg path for object detectin model')
+    parser.add_argument('--weights', type=str, default='weights/yolov3.weights', help='path to weights file for object detection models')
     parser.add_argument('--thresh', dest='thresh',
-                        help='Detection Threshold',
+                        help='Object Detection Threshold',
                         default=0.5, type=float)
     parser.add_argument('--show', dest='show_img',
                         help='Show image display 0/1',
@@ -253,11 +253,11 @@ def parse_args():
                         default=1080, type=int)
     
     parser.add_argument('--save_video', type=bool, default=False,
-                        help= 'To write output vidoe. Default name date.avi')
+                        help= 'To write output video.')
     parser.add_argument('--video_input', type=str, 
                         help= 'File of the video to analyze')
     parser.add_argument('--video_file',type=str,default=file_name,
-                        help='File to store the video, by default is the date')
+                        help='File to store the video, by default is today's date')
     parser.add_argument('--demo',dest='demo',
                         help='type of video demo we are running: total, objects, persons',
                         default='total', type=str)
