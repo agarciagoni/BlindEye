@@ -1,0 +1,41 @@
+List of main arguments you can include to modify the performance of the algorithm
+
+Input related arguments:
+
+'--input_type', type=str, default='cam', help='Wheather to use camera or video'
+
+'--video_input', type=str, help= 'File of the video to analyze'
+
+'--camera', type=int, default=0, help='camera port'
+
+'--resize', type=str, default='0x0', help='if provided, resize images before they are processed. default=0x0, Recommends : 432x368 or 656x368 or 1312x736 '
+
+'--width', dest='image_width', help='image width [1920], default=1920, type=int
+
+'--height', dest='image_height', help='image height [1080]', default=1080, type=int
+
+
+Performance related arguments:
+
+'--demo',dest='demo', help='type of demo we are running: total, objects or persons', default='total', type=str
+
+'--cfg', type=str, default='cfg/yolov3.cfg', help='*.cfg path for object detectin model'
+
+'--weights', type=str, default='weights/yolov3.weights', help='path to weights file for object detection models'
+
+'--thresh', dest='thresh', help='Object Detection Threshold', default=0.5, type=float
+
+'--model', type=str, default='mobilenet_thin', help='models for pose detection cmu / mobilenet_thin / mobilenet_v2_large / mobilenet_v2_small'
+
+'--tensorrt', type=str, default="False", help='for tensorrt process.'
+
+
+Output related arguments:
+
+'--save_video', type=bool, default=False, help= 'To write output video.'
+
+'--video_file',type=str,default=file_name, help='File to store the video, by default is today's date'
+
+'--black', type=bool, default=False, help= 'Option to only show detected image turning dark the rest'
+
+'--server', type=bool, default=False, help= 'Option to launch a html with data'
