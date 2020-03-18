@@ -1,6 +1,7 @@
 List of main arguments you can include to modify the performance of the algorithm
 
 Input related arguments:
+'--device',type=str,default='laptop', help='if using a laptop or a jetson'
 
 '--input_type', type=str, default='cam', help='Wheather to use camera or video'
 
