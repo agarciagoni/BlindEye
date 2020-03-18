@@ -204,6 +204,9 @@ def parse_args():
     # Parse input arguments
     desc = 'Capture and display live camera video on Jetson TX2/TX1'
     parser = argparse.ArgumentParser(description=desc)
+    
+    parser.add_argument('--device',type=str,default='laptop',
+                        help='if using a laptop or a jetson')
 ##Created for Object detection
     parser.add_argument('--cfg', type=str, default='cfg/yolov3.cfg', help='*.cfg path for object detectin model')
     parser.add_argument('--weights', type=str, default='weights/yolov3.weights', help='path to weights file for object detection models')
@@ -307,8 +310,10 @@ if __name__ == "__main__":
 
 #Input type:
     
-    if (args.input_type == 'cam'):
+    if (args.input_type == 'cam' and args.device=='jetson'):
         cap = open_cam_usb(args.camera,args.image_width,args.image_height)
+    elif (args.input_type == 'cam' and args.device=='laptop'):
+        cap = cv2.VideoCapture(args.camera)
     elif(args.input_type == 'video'):
         cap = cv2.VideoCapture(args.video_input)
 
