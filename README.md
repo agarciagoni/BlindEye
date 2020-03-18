@@ -54,7 +54,7 @@ You can find an explanation of the main customizable arguments here https://gith
 
 An example on how to run the code with several arguments:
 ```bash
-$ python3 webcam_video.py --resize 432x368 --input_type cam --camera 1 --width 960 --height 720 --demo total --cfg cfg/yolov3.cfg --weights weights/yolov3.weights --thresh 0.7 --tensorrt True --save_video True --server True
+$ python3 webcam_video.py --device jetson --resize 432x368 --input_type cam --camera 1 --width 960 --height 720 --demo total --cfg cfg/yolov3.cfg --weights weights/yolov3.weights --thresh 0.7 --tensorrt True --save_video True --server True
 ```
 
 
