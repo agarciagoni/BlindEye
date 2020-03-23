@@ -260,7 +260,7 @@ def parse_args():
     parser.add_argument('--video_input', type=str, 
                         help= 'File of the video to analyze')
     parser.add_argument('--video_file',type=str,default=file_name,
-                        help='File to store the video, by default is today's date')
+                        help='File to store the video, by default is todays date')
     parser.add_argument('--demo',dest='demo',
                         help='type of video demo we are running: total, objects, persons',
                         default='total', type=str)
