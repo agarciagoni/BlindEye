@@ -782,7 +782,8 @@ if __name__ == "__main__":
 
 #              test=image-image
               if (args.demo == 'total' or args.demo == 'persons'):
-                  image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
+                  body_color=(128,0,0)
+                  image = TfPoseEstimator.draw_humans(image, humans, body_color, imgcopy=False)
             
               #if (args.save_video == True):
               #    out.write(image)
