@@ -108,7 +108,7 @@ def generate_output(arm_angle, spine_angle, wrist_head_dist, rounded_center):
 
 #------------------ OBJECT DETECTION & CLASSIFICATION ------------------------------
 
-saved=[]
+saved=[('cup', 0.809, (835.9049682617188, 576.5128784179688, 171.89535522460938, 275.3124694824219))]
 count=0
 measure_objects=['cup','laptop','keyboard','cellphone','bottle']
 for obj in measure_objects:
@@ -366,6 +366,7 @@ if __name__ == "__main__":
            #print("FPS: ", fps)
 
 #--------------------- OBJECT ANALYSIS ----------------------------------------
+
             start_time_obj = time.time()
             if results:
                 for obj in results:
@@ -384,13 +385,14 @@ if __name__ == "__main__":
                     objects+=str((str(cat.decode("utf-8")),round(score,3)))
                     #print(objects)
                     if cat.decode("utf-8")=='cup':
-                        
-                        if ('cup' not in saved):  
-                            count=0
-                            save_object()
-                        else:
-                            count+=1
-                        print(saved)
+                        for saved_cat, saved_score, saved_bounds in saved:
+                            print(saved_cat)
+                            if ('cup' not in saved_cat):  
+                                count=0
+                                save_object()
+                            else:
+                                 count+=1
+                            print(saved)
                     if count >= 5:
                         saved=[]
                     
