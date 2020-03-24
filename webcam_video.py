@@ -108,7 +108,7 @@ def generate_output(arm_angle, spine_angle, wrist_head_dist, rounded_center):
 
 #------------------ OBJECT DETECTION & CLASSIFICATION ------------------------------
 
-saved=[('cup', 0.809, (835.9049682617188, 576.5128784179688, 171.89535522460938, 275.3124694824219))]
+saved=[]
 count=0
 measure_objects=['cup','laptop','keyboard','cellphone','bottle']
 for obj in measure_objects:
@@ -147,8 +147,8 @@ def object_interaction(obj,wrist_x,wrist_y):
 
 def save_object():
     global saved
-    if count==0:
-        saved.append((str(cat.decode("utf-8")),round(score,3),bounds))
+    
+    saved.append((str(cat.decode("utf-8")),round(score,3),bounds))
     return saved
 
 
@@ -326,8 +326,7 @@ if __name__ == "__main__":
         print(frame_width)
         out= cv2.VideoWriter(args.video_file,cv2.VideoWriter_fourcc('M','J','P','G'),10,(frame_width,frame_height))
     count = 0
-    y1 = [0, 0]
-    frame = 0
+    count_f=0
     while True:
         for obj in measure_objects:   
             #vars()[obj+'s']=[]
@@ -385,16 +384,29 @@ if __name__ == "__main__":
                     objects+=str((str(cat.decode("utf-8")),round(score,3)))
                     #print(objects)
                     if cat.decode("utf-8")=='cup':
-                        for saved_cat, saved_score, saved_bounds in saved:
-                            print(saved_cat)
-                            if ('cup' not in saved_cat):  
+                        if saved:
+                            #print(saved)
+                            for obj in saved:
+                                print(obj[0])
+                                if ('cup' not in obj[0]):  
+                                    count=0
+                                    save_object()
+                                else:
+                                     count+=1
+                                    # print(saved)
+                            if count >=5:
+                                saved.remove(obj)
                                 count=0
-                                save_object()
-                            else:
-                                 count+=1
-                            print(saved)
-                    if count >= 5:
-                        saved=[]
+                        else:
+                            save_object()
+                    else:
+                        if saved:
+                            count_f+=1
+                            if count_f >= 3:
+                                saved.clear()
+                                count_f=0
+                   # print(saved)
+
                     
     
     
@@ -427,7 +439,7 @@ if __name__ == "__main__":
                                       (10, 25),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                                       (255, 255, 255),2)
             end_time_obj = time.time()              
-            print('TIME OBJECT: ',end_time_obj-start_time_obj,' + ',(1/(end_time_obj-start_time_obj)))
+           # print('TIME OBJECT: ',end_time_obj-start_time_obj,' + ',(1/(end_time_obj-start_time_obj)))
                
 #--------------------- POSE ANALYSIS ----------------------------------------
                              
@@ -765,7 +777,7 @@ if __name__ == "__main__":
             
                 pose = generate_output(arm_angle, spine_angle, wrist_head_dist, rounded_center)
             end_time_pos = time.time()              
-            print('TIME POSE: ',end_time_pos-start_time_pos,' + ',(1/(end_time_pos-start_time_pos)))
+           # print('TIME POSE: ',end_time_pos-start_time_pos,' + ',(1/(end_time_pos-start_time_pos)))
  
 #--------------------- OUTPUT ----------------------------------------
             start_time_out=time.time()        
@@ -822,7 +834,7 @@ if __name__ == "__main__":
             break    
         
         end_time_out = time.time()              
-        print('TIME OUTPUT: ',end_time_out-start_time_out,' + ',(1/(end_time_out-start_time_out)))                
+       # print('TIME OUTPUT: ',end_time_out-start_time_out,' + ',(1/(end_time_out-start_time_out)))                
         
         k = cv2.waitKey(1)
         if k == 0xFF & ord("q"):
