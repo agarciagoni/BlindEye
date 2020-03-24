@@ -2,17 +2,17 @@
 #!/usr/bin/env python3
 from __future__ import print_function   # For Py2/3 compatibility
 
-import atexit
-import http.server
-import inspect
-import json
-import os
-import socketserver
-import traceback
-import importlib
-import wrapper
-import http.server
-import socketserver
+#import atexit
+#import http.server
+#import inspect
+#import json
+#import os
+#import socketserver
+#import traceback
+#import importlib
+#import wrapper
+#import http.server
+#import socketserver
 import eel
 
 #--------------------------------- POSE DETECTION --------------------------------
