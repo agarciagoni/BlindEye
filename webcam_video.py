@@ -110,7 +110,7 @@ def generate_output(arm_angle, spine_angle, wrist_head_dist, rounded_center):
 
 saved=[]
 count=0
-measure_objects=['cup','laptop']
+measure_objects=['cup','laptop','keyboard','cellphone','bottle']
 for obj in measure_objects:
     
     vars()[obj+'s']=[]
@@ -366,6 +366,7 @@ if __name__ == "__main__":
            #print("FPS: ", fps)
 
 #--------------------- OBJECT ANALYSIS ----------------------------------------
+            start_time_obj = time.time()
             if results:
                 for obj in results:
                     for measure in measure_objects:
@@ -383,16 +384,16 @@ if __name__ == "__main__":
                     objects+=str((str(cat.decode("utf-8")),round(score,3)))
                     #print(objects)
                     if cat.decode("utf-8")=='cup':
-                        count=0
+                        
                         if ('cup' not in saved):  
+                            count=0
                             save_object()
-                        #print(saved)
-                        cup_x=x
-                        cup_y=y
-                    else:
-                        count+=1
-                        if count==5:
-                           saved=[]
+                        else:
+                            count+=1
+                        print(saved)
+                    if count >= 5:
+                        saved=[]
+                    
     
     
     
@@ -423,6 +424,12 @@ if __name__ == "__main__":
                                       "INTERACTION with a: %s" %obj , #(1.0 / (time.time() - fps_time)),
                                       (10, 25),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                                       (255, 255, 255),2)
+            end_time_obj = time.time()              
+            print('TIME OBJECT: ',end_time_obj-start_time_obj,' + ',(1/(end_time_obj-start_time_obj)))
+               
+#--------------------- POSE ANALYSIS ----------------------------------------
+                             
+            start_time_pos = time.time()                
             if  humans:
                 #for human in humans:
                     #print(human.body_parts)
@@ -755,8 +762,11 @@ if __name__ == "__main__":
             
             
                 pose = generate_output(arm_angle, spine_angle, wrist_head_dist, rounded_center)
-            
-                     
+            end_time_pos = time.time()              
+            print('TIME POSE: ',end_time_pos-start_time_pos,' + ',(1/(end_time_pos-start_time_pos)))
+ 
+#--------------------- OUTPUT ----------------------------------------
+            start_time_out=time.time()        
 #Showing     
             if (args.show_img ==1 or args.save_video == True):
 ##Object
@@ -772,8 +782,8 @@ if __name__ == "__main__":
               if (saved):
                 for cat, score, bounds in saved:
                    x, y, w, h = bounds
-                  # cv2.rectangle(frame, (int(x-w/2),int(y-h/2)),(int(x+w/2),int(y+h/2)),(255,0,0))
-                  # cv2.putText(frame,(cat), (int(x-w/2), int(y-h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0))
+                   cv2.rectangle(image, (int(x-w/2),int(y-h/2)),(int(x+w/2),int(y+h/2)),(255,0,0))
+                   cv2.putText(image,(cat), (int(x-w/2), int(y-h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0))
 
               #cv2.namedWindow('preview',cv2.WINDOW_NORMAL)
               #cv2.resizeWindow('preview', 960, 720)
@@ -802,12 +812,16 @@ if __name__ == "__main__":
                 #  image=cv2.resize(image,(frame_width,frame_height))
                   out.write(image)   
                   #cv2.imwrite('cooking_camera2.jpg',image)            
-            
+        
+       
 # print(results) Seems like results is a dict with the name,probability, bounds(4 puntos).
         else:
             print("Video complete")
             break    
-                     
+        
+        end_time_out = time.time()              
+        print('TIME OUTPUT: ',end_time_out-start_time_out,' + ',(1/(end_time_out-start_time_out)))                
+        
         k = cv2.waitKey(1)
         if k == 0xFF & ord("q"):
             break
