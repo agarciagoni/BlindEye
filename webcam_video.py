@@ -112,7 +112,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 saved=[]
 count=0
-measure_objects=['cup','person','keyboard']
+measure_objects=['person','cup','keyboard','mouse']
 track_objects=pd.DataFrame(columns=['time','cup'])
 for obj in measure_objects:
     
@@ -383,7 +383,7 @@ if __name__ == "__main__":
                            vars()[measure+'_index']=results.index(obj)
                            vars()[measure+'_track'].append((datetime.now().strftime('%d/%m/%H:%M:%S'),obj[-1][0],obj[-1][1]))
                            vars()[measure+'_track_x'].append((obj[-1][0]))
-                           vars()[measure+'_track_y'].append((obj[-1][1]))
+                           vars()[measure+'_track_y'].append(args.image_height-(obj[-1][1]))
                        # else:
                             
                     # save_object()
@@ -842,7 +842,7 @@ if __name__ == "__main__":
         else:
             print("Video complete")
             break    
-        
+
         end_time_out = time.time()              
        # print('TIME OUTPUT: ',end_time_out-start_time_out,' + ',(1/(end_time_out-start_time_out)))                
         
@@ -855,9 +855,27 @@ out.release()
 cap.release()
 for obj in measure_objects:
     print(obj,' : ',vars()[obj+'_track'])
-    plt.hist2d(vars()[obj+'_track_x'],vars()[obj+'_track_y'], bins=[np.arange(0,960,5),np.arange(0,720,5)])
+    plt.hist2d(vars()[obj+'_track_x'],(vars()[obj+'_track_y']), bins=[np.arange(0,960,40),np.arange(0,720,40)],cmap='Reds')
     plt.savefig(obj+'_track.png')
 
+import seaborn as sns
+colors = [  'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
+cont=0
+for obj in measure_objects:
+    ax=sns.kdeplot(vars()[obj+'_track_x'],vars()[obj+'_track_y'],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
+    ax.set_frame_on(False)
+    plt.xlim(0, 960)
+    plt.ylim(0, 720)
+    plt.axis('off')
+    fig = ax.get_figure()
+    fig.savefig(obj+'_track_sns.png', transparent=True, bbox_inches='tight', pad_inches=0)
+    cont+=1
+#plt.show()
+
+# save your KDE to disk
+    
 
 print(status_tracker)
 print(detection_tracker)
