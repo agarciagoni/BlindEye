@@ -107,16 +107,22 @@ def generate_output(arm_angle, spine_angle, wrist_head_dist, rounded_center):
                 return arm_angle + spine_angle + wrist_head_dist + rounded_center
 
 #------------------ OBJECT DETECTION & CLASSIFICATION ------------------------------
-
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 saved=[]
 count=0
-measure_objects=['cup','laptop','keyboard','cellphone','bottle']
+measure_objects=['cup','person','keyboard']
+track_objects=pd.DataFrame(columns=['time','cup'])
 for obj in measure_objects:
     
     vars()[obj+'s']=[]
     vars()[obj+'_mov']=False
     vars()['dist_r_'+obj]=1000
     vars()['dist_l_'+obj]=1000
+    vars()[obj+'_track']=[(datetime.now().strftime('%d/%m/%H:%M:%S'),0,0)]
+    vars()[obj+'_track_x']=[]
+    vars()[obj+'_track_y']=[]
     
 objects_recognised='The camera recognised: '    
 #Fron Object Detection.
@@ -375,8 +381,13 @@ if __name__ == "__main__":
                            vars()[measure+'s'].append(obj)
                            vars()[measure+'_mov']=is_moving(vars()[measure+'s'],20)
                            vars()[measure+'_index']=results.index(obj)
-     
+                           vars()[measure+'_track'].append((datetime.now().strftime('%d/%m/%H:%M:%S'),obj[-1][0],obj[-1][1]))
+                           vars()[measure+'_track_x'].append((obj[-1][0]))
+                           vars()[measure+'_track_y'].append((obj[-1][1]))
+                       # else:
+                            
                     # save_object()
+                    
 
 
                 for cat, score, bounds in results:
@@ -396,7 +407,6 @@ if __name__ == "__main__":
                                     # print(saved)
                             if count >=5:
                                 saved.remove(obj)
-                                count=0
                         else:
                             save_object()
                     else:
@@ -843,6 +853,12 @@ if __name__ == "__main__":
 
 out.release()
 cap.release()
+for obj in measure_objects:
+    print(obj,' : ',vars()[obj+'_track'])
+    plt.hist2d(vars()[obj+'_track_x'],vars()[obj+'_track_y'], bins=[np.arange(0,960,5),np.arange(0,720,5)])
+    plt.savefig(obj+'_track.png')
+
+
 print(status_tracker)
 print(detection_tracker)
 try:
