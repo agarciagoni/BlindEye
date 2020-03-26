@@ -112,7 +112,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 saved=[]
 count=0
-measure_objects=['person','cup','keyboard','mouse']
+measure_objects=['person','cup','keyboard','mouse','cell phone']
 track_objects=pd.DataFrame(columns=['time','cup'])
 for obj in measure_objects:
     
@@ -120,9 +120,9 @@ for obj in measure_objects:
     vars()[obj+'_mov']=False
     vars()['dist_r_'+obj]=1000
     vars()['dist_l_'+obj]=1000
-    vars()[obj+'_track']=[(datetime.now().strftime('%d/%m/%H:%M:%S'),0,0)]
-    vars()[obj+'_track_x']=[]
-    vars()[obj+'_track_y']=[]
+    vars()[obj+'_track_time']=[(datetime.now().strftime('%d/%m/%H:%M:%S'))]
+    vars()[obj+'_track_x']=[0]
+    vars()[obj+'_track_y']=[0]
     
 objects_recognised='The camera recognised: '    
 #Fron Object Detection.
@@ -381,9 +381,9 @@ if __name__ == "__main__":
                            vars()[measure+'s'].append(obj)
                            vars()[measure+'_mov']=is_moving(vars()[measure+'s'],20)
                            vars()[measure+'_index']=results.index(obj)
-                           vars()[measure+'_track'].append((datetime.now().strftime('%d/%m/%H:%M:%S'),obj[-1][0],obj[-1][1]))
-                           vars()[measure+'_track_x'].append((obj[-1][0]))
-                           vars()[measure+'_track_y'].append(args.image_height-(obj[-1][1]))
+                           vars()[measure+'_track_time'].append((datetime.now().strftime('%d/%m/%H:%M:%S')))
+                           vars()[measure+'_track_x'].append(obj[-1][0])
+                           vars()[measure+'_track_y'].append(args.image_height-obj[-1][1])
                        # else:
                             
                     # save_object()
@@ -851,17 +851,40 @@ if __name__ == "__main__":
             break
 
 
+    
+
 out.release()
 cap.release()
 for obj in measure_objects:
-    print(obj,' : ',vars()[obj+'_track'])
-    plt.hist2d(vars()[obj+'_track_x'],(vars()[obj+'_track_y']), bins=[np.arange(0,960,40),np.arange(0,720,40)],cmap='Reds')
-    plt.savefig(obj+'_track.png')
+    vars()[obj+'_data']=pd.DataFrame({'time':vars()[obj+'_track_time'],'x':vars()[obj+'_track_x'],'y':vars()[obj+'_track_y']})
+    vars()[obj+'_data'].to_csv('output/'+obj+'_data.csv')
+
+for obj in measure_objects:
+   # print(obj,' : ',vars()[obj+'_track'])
+#    plt.hist2d(vars()[obj+'_track_x'],(vars()[obj+'_track_y']), bins=[np.arange(0,960,10),np.arange(0,720,10)],cmap='Reds')
+#    plt.savefig(obj+'_track.png')
+
+### The fgure created with hist2d is affecting the seaborn ones in terms of grid, background etc. Create some randome data first to try this graphs? losing to much time. Just print the data of some video and process it.
 
 import seaborn as sns
+#sns.set_style("whitegrid")
 colors = [  'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
             'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
             'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
+cont=0
+plt.figure()
+plt.xlim(0, 960)
+plt.ylim(0, 720)
+plt.axis('off')
+for obj in measure_objects:
+    plt.figure()
+    ax=sns.kdeplot(vars()[obj+'_track_x'],vars()[obj+'_track_y'],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
+    ax.set_frame_on(False)
+
+    fig = ax.get_figure()
+    fig.savefig('output/'+'+obj+'_track_sns.png', transparent=True, bbox_inches='tight', pad_inches=0)
+    cont+=1
+#plt.figure()
 cont=0
 for obj in measure_objects:
     ax=sns.kdeplot(vars()[obj+'_track_x'],vars()[obj+'_track_y'],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
@@ -870,10 +893,10 @@ for obj in measure_objects:
     plt.ylim(0, 720)
     plt.axis('off')
     fig = ax.get_figure()
-    fig.savefig(obj+'_track_sns.png', transparent=True, bbox_inches='tight', pad_inches=0)
+    fig.savefig('output/'++obj+'_track_sns.png', transparent=True, bbox_inches='tight', pad_inches=0)
     cont+=1
 #plt.show()
-
+fig.savefig('output/'++'total_track_sns.png', transparent=True, bbox_inches='tight', pad_inches=0)
 # save your KDE to disk
     
 
