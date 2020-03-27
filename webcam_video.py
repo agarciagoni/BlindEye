@@ -109,6 +109,7 @@ def generate_output(arm_angle, spine_angle, wrist_head_dist, rounded_center):
 #------------------ OBJECT DETECTION & CLASSIFICATION ------------------------------
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 saved=[]
 count=0
@@ -855,48 +856,50 @@ if __name__ == "__main__":
 
 out.release()
 cap.release()
+
+
+#------------------------- Data Frame Save  -------------------------------------
 for obj in measure_objects:
     vars()[obj+'_data']=pd.DataFrame({'time':vars()[obj+'_track_time'],'x':vars()[obj+'_track_x'],'y':vars()[obj+'_track_y']})
-    vars()[obj+'_data'].to_csv('output/'+obj+'_data.csv')
+  # vars()[obj+'_data'].to_csv('output/'+obj+'_data.csv')
 
-for obj in measure_objects:
-   # print(obj,' : ',vars()[obj+'_track'])
-#    plt.hist2d(vars()[obj+'_track_x'],(vars()[obj+'_track_y']), bins=[np.arange(0,960,10),np.arange(0,720,10)],cmap='Reds')
-#    plt.savefig(obj+'_track.png')
-
-### The fgure created with hist2d is affecting the seaborn ones in terms of grid, background etc. Create some randome data first to try this graphs? losing to much time. Just print the data of some video and process it.
-
-import seaborn as sns
-#sns.set_style("whitegrid")
+#------------------------- Heatmap save  -------------------------------------
+  
 colors = [  'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
             'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
             'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
-cont=0
-plt.figure()
-plt.xlim(0, 960)
-plt.ylim(0, 720)
-plt.axis('off')
+cont=1
 for obj in measure_objects:
     plt.figure()
-    ax=sns.kdeplot(vars()[obj+'_track_x'],vars()[obj+'_track_y'],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
-    ax.set_frame_on(False)
-
-    fig = ax.get_figure()
-    fig.savefig('output/'+'+obj+'_track_sns.png', transparent=True, bbox_inches='tight', pad_inches=0)
+    plt.hist2d(vars()[obj+'_data'].iloc[:,2],vars()[obj+'_data'].iloc[:,2], bins=[np.arange(0,960,20),np.arange(0,720,20)],cmap=colors[cont])
+    plt.savefig(obj+'_track_plt.png')
     cont+=1
-#plt.figure()
-cont=0
-for obj in measure_objects:
-    ax=sns.kdeplot(vars()[obj+'_track_x'],vars()[obj+'_track_y'],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
+
+
+#sns.set_style("whitegrid")
+cont=1
+for obj in measure_objects: 
+    plt.figure()
+    ax=sns.kdeplot(vars()[obj+'_data'].iloc[:,2],vars()[obj+'_data'].iloc[:,2],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
     ax.set_frame_on(False)
     plt.xlim(0, 960)
     plt.ylim(0, 720)
     plt.axis('off')
     fig = ax.get_figure()
-    fig.savefig('output/'++obj+'_track_sns.png', transparent=True, bbox_inches='tight', pad_inches=0)
+    fig.savefig(obj+'_track_sns.png', transparent=False, bbox_inches='tight', pad_inches=0)
     cont+=1
-#plt.show()
-fig.savefig('output/'++'total_track_sns.png', transparent=True, bbox_inches='tight', pad_inches=0)
+
+cont=1
+plt.figure()
+for obj in measure_objects:  
+    ax=sns.kdeplot(vars()[obj+'_data'].iloc[:,2],vars()[obj+'_data'].iloc[:,2],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
+    ax.set_frame_on(False)
+    plt.xlim(0, 960)
+    plt.ylim(0, 720)
+    plt.axis('off')   
+    cont+=1
+fig = ax.get_figure()
+fig.savefig('total_track_sns.png', transparent=False, bbox_inches='tight', pad_inches=0)
 # save your KDE to disk
     
 
