@@ -113,7 +113,7 @@ import seaborn as sns
 import numpy as np
 saved=[]
 count=0
-measure_objects=['person','cup','keyboard','mouse','cell phone']
+measure_objects=['person','cell phone','cup','keyboard','mouse']
 track_objects=pd.DataFrame(columns=['time','cup'])
 for obj in measure_objects:
     
@@ -121,9 +121,9 @@ for obj in measure_objects:
     vars()[obj+'_mov']=False
     vars()['dist_r_'+obj]=1000
     vars()['dist_l_'+obj]=1000
-    vars()[obj+'_track_time']=[(datetime.now().strftime('%d/%m/%H:%M:%S'))]
-    vars()[obj+'_track_x']=[0]
-    vars()[obj+'_track_y']=[0]
+    vars()[obj+'_track_time']=[]
+    vars()[obj+'_track_x']=[]
+    vars()[obj+'_track_y']=[]
     
 objects_recognised='The camera recognised: '    
 #Fron Object Detection.
@@ -861,7 +861,8 @@ cap.release()
 #------------------------- Data Frame Save  -------------------------------------
 for obj in measure_objects:
     vars()[obj+'_data']=pd.DataFrame({'time':vars()[obj+'_track_time'],'x':vars()[obj+'_track_x'],'y':vars()[obj+'_track_y']})
-  # vars()[obj+'_data'].to_csv('output/'+obj+'_data.csv')
+    vars()[obj+'_data'].to_csv('output/'+obj+'_data.csv')
+
 
 #------------------------- Heatmap save  -------------------------------------
   
@@ -871,8 +872,8 @@ colors = [  'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
 cont=1
 for obj in measure_objects:
     plt.figure()
-    plt.hist2d(vars()[obj+'_data'].iloc[:,2],vars()[obj+'_data'].iloc[:,2], bins=[np.arange(0,960,20),np.arange(0,720,20)],cmap=colors[cont])
-    plt.savefig(obj+'_track_plt.png')
+    plt.hist2d(vars()[obj+'_data'].iloc[:,1],vars()[obj+'_data'].iloc[:,2], bins=[np.arange(0,960,20),np.arange(0,720,20)],cmap=colors[cont])
+    plt.savefig('output/'+obj+'_track_plt.png')
     cont+=1
 
 
@@ -880,26 +881,26 @@ for obj in measure_objects:
 cont=1
 for obj in measure_objects: 
     plt.figure()
-    ax=sns.kdeplot(vars()[obj+'_data'].iloc[:,2],vars()[obj+'_data'].iloc[:,2],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
+    ax=sns.kdeplot(vars()[obj+'_data'].iloc[:,1],vars()[obj+'_data'].iloc[:,2],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)  
     ax.set_frame_on(False)
     plt.xlim(0, 960)
     plt.ylim(0, 720)
     plt.axis('off')
     fig = ax.get_figure()
-    fig.savefig(obj+'_track_sns.png', transparent=False, bbox_inches='tight', pad_inches=0)
+    fig.savefig('output/'+obj+'_track_sns.png', transparent=False, bbox_inches='tight', pad_inches=0)
     cont+=1
 
 cont=1
 plt.figure()
 for obj in measure_objects:  
-    ax=sns.kdeplot(vars()[obj+'_data'].iloc[:,2],vars()[obj+'_data'].iloc[:,2],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
+    ax=sns.kdeplot(vars()[obj+'_data'].iloc[:,1],vars()[obj+'_data'].iloc[:,2],cmap=colors[cont], shade=True, shade_lowest=False,gridsize=100)
     ax.set_frame_on(False)
     plt.xlim(0, 960)
     plt.ylim(0, 720)
     plt.axis('off')   
     cont+=1
 fig = ax.get_figure()
-fig.savefig('total_track_sns.png', transparent=False, bbox_inches='tight', pad_inches=0)
+fig.savefig('output/'+'total_track_sns.png', transparent=False, bbox_inches='tight', pad_inches=0)
 # save your KDE to disk
     
 
