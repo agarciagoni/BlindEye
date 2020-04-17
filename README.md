@@ -50,7 +50,7 @@ To download different models and weights go to the original darknet source https
 ```bash
 $ python3 webcam_video.py --resize 432x368
 ```
-The resize argument is optinal but recommended with a good ratio fps/quality.
+The resize argument is optinal but recommended with a good ratio fps/accuracy.
 
 #### Interesting arguments
 
