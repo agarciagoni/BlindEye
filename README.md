@@ -4,8 +4,9 @@ The aim of this project is to develop an activity recognition algorithm with dif
 
 In this repository we include the code that start by estimating the users position and detecting the objects and their interactions. The codes are based on the forked repo (https://github.com/ildoonet/tf-pose-estimation) and the YOLO python implementation from https://github.com/madhawav/YOLO3-4-Py
 
-
-<img src="data/general.gif" width="600" height="450">
+<p align="center">
+  <img src="data/general.gif" width="300" height="225" align="center">
+</p>
 
 ## Own work
 
