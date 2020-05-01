@@ -4,6 +4,10 @@ The aim of this project is to develop an activity recognition algorithm with dif
 
 In this repository we include the code that start by estimating the users position and detecting the objects and their interactions. The codes are based on the forked repo (https://github.com/ildoonet/tf-pose-estimation) and the YOLO python implementation from https://github.com/madhawav/YOLO3-4-Py
 
+<p align="center">
+  <img src="data/general.gif" width="300" height="225" align="center">
+</p>
+
 ## Own work
 
 The team working in the project has added several features to the original code.
@@ -46,7 +50,7 @@ To download different models and weights go to the original darknet source https
 ```bash
 $ python3 webcam_video.py --resize 432x368
 ```
-The resize argument is optinal but recommended with a good ratio fps/quality.
+The resize argument is optinal but recommended with a good ratio fps/accuracy.
 
 #### Interesting arguments
 
