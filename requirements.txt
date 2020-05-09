@@ -1,8 +1,12 @@
+eel
+cv2
 argparse
+seaborn
+cython
 dill
 fire
 matplotlib
-numba
+numpy
 psutil
 pycocotools
 requests
