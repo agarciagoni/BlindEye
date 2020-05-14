@@ -22,7 +22,8 @@ The team working in the project has added several features to the original code.
 ## Install & Downloads
 
 #### Pose Estimation
-Install through requirements
+**Requires TensorFlow 1.14.0 and Python 3.7.7 or below.** If you have Python 3.8, run this project on a virtual environment.
+Install through requirements:
 ```bash
 $ pip3 install -r requirements.txt
 ```
@@ -37,20 +38,24 @@ Or install it as a package
 $ python setup.py install  # Or, `pip install -e .`
 ```
 #### Object detection
+**For Linux/Unix/Ubuntu**
 If not installed with the requirements
 ```bash
 $ pip3 install yolo34py #for CPU only
 $ pip3 install yolo34py-gpu #GPU Accelared version
 ```
 
+**For Mac**
+pydarknet is incompatible with MacOS. Install ______ with these commands:
+
 To download different models and weights go to the original darknet source https://pjreddie.com/darknet/yolo/. Recommended the YOLOV3 or YOLOV3-tiny.
 
-## To run the code
+## To run
 
 ```bash
 $ python3 webcam_video.py --resize 432x368
 ```
-The resize argument is optinal but recommended with a good ratio fps/accuracy.
+The resize argument is optional but recommended with a good ratio fps/accuracy.
 
 #### Interesting arguments
 
@@ -60,7 +65,3 @@ An example on how to run the code with several arguments:
 ```bash
 $ python3 webcam_video.py --device jetson --resize 432x368 --input_type cam --camera 1 --width 960 --height 720 --demo total --cfg cfg/yolov3.cfg --weights weights/yolov3.weights --thresh 0.7 --tensorrt True --save_video True --server True
 ```
-
-
-
-
