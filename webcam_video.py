@@ -20,13 +20,10 @@ from utils import analyze_pose, generate_output
 import argparse
 import logging
 import time
-import sys
 import subprocess
 # sys.path.insert(0,'/usr/local/lib/python3.7/site-packages')
 # print(sys.path)
 import cv2
-import math
-from math import sqrt
 from datetime import datetime
 file_name='Video'+datetime.now().strftime('_%d_%m_%H_%M_%S')+'.avi'
 
@@ -65,13 +62,20 @@ from utils import is_moving, object_interaction, save_object, str2bool, draw_bou
 saved=[]
 count=0
 
-track_objects=pd.DataFrame(columns=['time','cup'])
+general_objects=['Person','Cell phone','Book','Clock','Chair']
 
 objects_recognised='The camera recognised: '
 
 #------------------------- JETSON CAMERA OPENING ------------------------------
 
 from camera_controller import open_cam_usb, open_cam_rtsp, open_cam_onboard
+
+#------------------------- ACTIVITY CLASSIFICATION ------------------------------
+from activity_classification import locate_activity,describe_activity
+#------------------------- IMPROVED VISUALS ------------------------------
+
+from PIL import ImageFont, ImageDraw
+from PIL import Image as Image_pil
 
 #------------------------- ARGUMENT DEFINITION ------------------------------
 
@@ -84,7 +88,7 @@ def parse_args():
                         help='list of objects to detect')
     parser.add_argument('--device',type=str,default='laptop',
                         help='if using a laptop or a jetson')
-    parser.add_argument('--system', type=str, required=True, help='Enter \'Mac\' or \'Other\'')
+    parser.add_argument('--system', type=str, required=False, help='Enter \'Mac\' or \'Other\'')
     ## For Object detection
     parser.add_argument('--cfg', type=str, default='cfg/yolov3.cfg', help='*.cfg path for object detection model')
     parser.add_argument('--weights', type=str, default='weights/yolov3.weights', help='path to weights file for object detection models')
@@ -202,14 +206,24 @@ if __name__ == "__main__":
     if (args.save_video==True):
         frame_width=int(cap.get(3))
         frame_height=int(cap.get(4))
-        print(cap.get(3))
-        print(frame_width)
-        out= cv2.VideoWriter(args.video_file,cv2.VideoWriter_fourcc('M','J','P','G'),10,(frame_width,frame_height))
+        if frame_width > args.image_width:
+                frame_width=args.image_width
+                frame_height=args.image_height
+        out= cv2.VideoWriter(args.video_file,cv2.VideoWriter_fourcc('M','J','P','G'),25,(frame_width,frame_height))
     
     count = 0
     count_f=0
+    frames=0
+    
+    #Imrpoved visuals fonts
+    font_title=ImageFont.truetype('helvetica-bold.ttf',round(frame_width*0.025))
+    font_subtitle=ImageFont.truetype('helvetica-bold.ttf',round(frame_width*0.022))
+    font_objects=ImageFont.truetype('helvetica-bold.ttf',round(frame_width*0.019))
+    font_inter=ImageFont.truetype('helvetica-bold.ttf',round(frame_width*0.021))
+    font_count=ImageFont.truetype('helvetica-bold.ttf',round(frame_width*0.018))
     
     while True:
+        objects_tolist=''
         for obj in args.objects:
             #vars()[obj+'s']=[]
             vars()[obj+'_detect']=False
@@ -222,6 +236,10 @@ if __name__ == "__main__":
         # image = cv2.imread('cooking2.jpg')
         # image=cv2.resize(image,(frame_width,frame_height))
         if r:
+            if  frame_width >= args.image_width:
+                image=cv2.resize(image,(args.image_width,args.image_height))
+                frame_width=args.image_width
+                frame_height=args.image_height
             start_time = time.time()
 
             # Only measure the time taken by YOLO and API Call overhead
@@ -236,7 +254,11 @@ if __name__ == "__main__":
                 results = net.detect(Image(image),args.thresh) #LOOK INTO THIS FUNCTION.
             else:
                 results=[]
-            
+            #Draw boxes, no names yet.
+            if args.system=='Other':
+                for cat, score, bounds in results:
+                    x, y, w, h = bounds
+                    cv2.rectangle(image, (int(x-w/2),int(y-h/2)),(int(x+w/2),int(y+h/2)),(55,0,0))
             ####################################################
 
             ################################
@@ -247,15 +269,31 @@ if __name__ == "__main__":
                 from Mac import run_YOLO
                 idxs, boxes, classIDs, confidences = run_YOLO(image, ln, args.confidence, args.threshold, net)
 
+
+            if args.system == 'Mac':
+                from Mac import annotate_image_box
+                annotate_image_box(image, idxs, boxes, COLORS, LABELS, confidences, classIDs)
             ####################################################
 
             ## Pose ##
-            #logger.debug('image process+')
             if (args.demo == 'total' or args.demo == 'persons'):
                 humans = e.inference(image, resize_to_default=(w > 0 and h > 0), upsample_size=args.resize_out_ratio)
             else:
                 humans=[]
-
+            #Draw humans now so they are in the background
+            if (args.demo == 'total' or args.demo == 'persons'):
+                body_color=(128,0,0)
+                image = TfPoseEstimator.draw_humans(image, humans, body_color, imgcopy=False)
+                
+    
+    
+    
+    
+            #Change image to draw better text   
+    
+            im_rgb=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+            pil_img=Image_pil.fromarray(im_rgb)
+            draw=ImageDraw.Draw(pil_img)   
 #--------------------- OBJECT ANALYSIS ----------------------------------------
 
             start_time_obj = time.time()
@@ -280,7 +318,20 @@ if __name__ == "__main__":
                                 vars()[measure+'_track_x'].append(obj[-1][0])
                                 vars()[measure+'_track_y'].append(args.image_height-obj[-1][1])
 
-                    # save_object()
+                   #Count number of objects
+                    for cat, score, bounds in results:
+                        objects_tolist+=str(cat.decode("utf-8"))+','
+                    objects_list=objects_tolist.split(',')
+                    objects_list.remove('')
+                    objects_uniq=list(set(objects_list))
+                    #draw.text((frame_width*0.83,5),'Detected objects:',font=font_count)
+                    for i in range(len(objects_uniq)):
+                         if objects_uniq[i] in objects_list: 
+                             obj_count=objects_list.count(objects_uniq[i])
+                         else:   
+                             obj_count=0
+                       #  draw.text((frame_width*0.83,round(frame_width*0.021)*(i+1.69)),objects_uniq[i]+' : '+str(obj_count),font=font_count)
+                       
                     for cat, score, bounds in results:
                         x, y, w, h = bounds
                         objects+=str((str(cat.decode("utf-8")),round(score,3)))
@@ -323,24 +374,31 @@ if __name__ == "__main__":
                                     #    print( vars()['dist_r_'+obj])
 
                     #Establishing interaction
-                    dist_thresh=150
-                    for obj in args.objects:
-                        if vars()[obj+'_detect']==True:
-                            if (vars()[obj+'_mov']==True or vars()['dist_r_'+obj]<dist_thresh or vars()['dist_l_'+obj]<dist_thresh):
-                                print('Interaction with a ',obj,vars()[obj+'_mov'],round(vars()['dist_r_'+obj],2),round(vars()['dist_l_'+obj],2))
-                                cv2.putText(image,
-                                        "INTERACTION with a: %s" %obj , #(1.0 / (time.time() - fps_time)),
-                                        (10, 25),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                        (255, 255, 255),2)
+                        dist_thresh=400
+                        for obj in args.objects:
+                            if vars()[obj+'_detect']==True:
+                                 if (#vars()[obj+'_mov']==True# or
+                                     vars()['dist_r_'+obj]<dist_thresh or vars()['dist_l_'+obj]<dist_thresh):
+                                     pass
+                             #print('Interaction with a ',obj,vars()[obj+'_mov'],round(vars()['dist_r_'+obj],2),round(vars()['dist_l_'+obj],2))
+                             #draw.text((10,frame_width*0.023),"Interaction with a: %s" %obj,font=font_inter)
+                             #cv2.putText(image,
+                             #        "INTERACTION with a: %s" %obj , #(1.0 / (time.time() - fps_time)),
+                             #        (10, 25),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                             #        (255, 255, 255),2)
+                            # for cat, score, bounds in results:
+                            #    x, y, w, h = bounds
+                            #    if cat.decode("utf-8") == obj:
+                             #      cv2.rectangle(image, (int(x-w/2),int(y-h/2)),(int(x+w/2),int(y+h/2)),(55,155,100))
             ####################################################
             
             ################################
             ######### ONLY FOR MAC #########
             ################################
 
-            if args.system == 'Mac':
-                from Mac import annotate_image
-                annotate_image(image, idxs, boxes, COLORS, LABELS, confidences, classIDs)
+     #       if args.system == 'Mac':
+      #          from Mac import annotate_image
+       #         annotate_image_box(image, idxs, boxes, COLORS, LABELS, confidences, classIDs)
 
             ####################################################
 
@@ -363,6 +421,69 @@ if __name__ == "__main__":
                 print('No pose detected')
                 break
 
+#--------------------- activity output ----------------------------------------
+            initial_x=10
+            initial_y=10
+            label_step=round(frame_width*0.023)
+            color_font=(255,255,255)
+            video_title='Home Care - Kitchen'
+            draw.text((initial_x,initial_y),video_title,font=font_title,fill=color_font)
+      #      if frames <80: video_subtitle='Studying scene..'
+     #       elif frames<190: video_subtitle='Kids Playing'
+           # video_subtitle='Wheelchair user in the kitchen'
+            #draw.text((initial_x,initial_y+label_step),video_subtitle,font=font_subtitle,fill=color_font)
+            if frames <50: video_subtitle2='Performance'
+            elif frames <100: video_subtitle2='Performance: stable movement with oil bottle'
+            elif frames<375: video_subtitle2='Performance: good accuracy'
+          
+            draw.text((initial_x,initial_y+1*label_step),video_subtitle2,font=font_subtitle,fill=color_font)
+            color_font1=(255,255,255)
+            if frames <75: video_subtitle3='Level of independence: 3 / 5'
+            elif frames<200: 
+                color_font1=(255,255,255)
+                video_subtitle3='Level of independence: 4 / 5'
+            elif frames<=375:
+                video_subtitle3='Level of independence: 4 / 5 - Check fire temperature'
+                color_font1=(255,0,0)
+     
+            draw.text((initial_x,initial_y+2*label_step),video_subtitle3,font=font_subtitle,fill=color_font1)
+            
+            
+            initial_x2=frame_width/2-200
+            initial_y2=frame_height-5-round(frame_width*0.024)
+            label_step=round(frame_width*0.024)
+            try:
+                rooms,main_room=locate_activity(objects_list)
+                room_label='In the: ' + main_room+' with : '+str(rooms[main_room])
+                draw.text((initial_x2,initial_y2),room_label,font=font_objects)
+            except:
+                room_label='In the: ' + 'Estimating room...'
+                draw.text((initial_x2,initial_y2),room_label,font=font_objects)
+
+            label_count=1
+            try:
+                activities,main_activity=describe_activity(objects_list)
+                act_obj=[(obj,objects_list.count(obj)) for obj in objects_uniq if obj in activities[main_activity]]                 
+                activity_label=(main_activity + ' using '+ str(act_obj))
+                draw.text((initial_x2,initial_y2-label_step),activity_label,font=font_objects)
+                for key_act in activities:
+                    if key_act not in main_activity:
+                        label_count+=1
+                        act_obj2=[(obj,objects_list.count(obj)) for obj in objects_uniq if obj in activities[key_act]]
+                        label_extra=key_act+' using: '+str(act_obj2)
+                        draw.text((initial_x2,initial_y2-label_step*label_count),label_extra,font=font_objects)
+            except:
+                #label_count=0
+                activity_label='Estimating activity...'
+                draw.text((initial_x2,initial_y2-label_step),activity_label,font=font_objects)
+
+            try:
+                    other_objects=[(obj,objects_list.count(obj)) for obj in objects_uniq if obj in general_objects]
+                    label_general='General objects detected: '+str(other_objects)
+                    draw.text((initial_x2,initial_y2-label_step*(label_count+1)),label_general,font=font_objects)
+            except: 
+                pass
+            
 #--------------------- OUTPUT ----------------------------------------
             start_time_out=time.time()
             #Showing
@@ -373,37 +494,39 @@ if __name__ == "__main__":
 
               for cat, score, bounds in results:
                 x, y, w, h = bounds
-                cv2.rectangle(image, (int(x-w/2),int(y-h/2)),(int(x+w/2),int(y+h/2)),(55,0,0))
-                cv2.putText(image, str(cat.decode("utf-8")), (int(x-w/2), int(y-h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))
+                   
+                if (y-h/2)<(initial_y+4*label_step) and (x-w/2) < (frame_width/4): print(str(cat.decode("utf-8")),(y-h/2))
+           #     if str(cat.decode("utf-8")) == 'Person' : draw.text((int(x-w/2), int(y-h/2)-round(frame_width*0.021)), 'Child',font=font_objects,fill=color_font)       
+                else: draw.text((int(x-w/2), int(y-h/2)-round(frame_width*0.021)), str(cat.decode("utf-8")),font=font_objects,fill=color_font)
+              
+              if args.system == 'Mac':
+                from Mac import annotate_image_label
+                annotate_image_label(draw, idxs, boxes, COLORS, LABELS, confidences, classIDs,frame_width,font_objects,color_font)
+#                ##Saved Object
+#              if (saved):
+#                for cat, score, bounds in saved:
+#                   x, y, w, h = bounds
+#                   cv2.rectangle(image, (int(x-w/2),int(y-h/2)),(int(x+w/2),int(y+h/2)),(255,0,0))
+#                   cv2.putText(image,(cat), (int(x-w/2), int(y-h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0))
 
-                ##Saved Object
-              if (saved):
-                for cat, score, bounds in saved:
-                   x, y, w, h = bounds
-                   cv2.rectangle(image, (int(x-w/2),int(y-h/2)),(int(x+w/2),int(y+h/2)),(255,0,0))
-                   cv2.putText(image,(cat), (int(x-w/2), int(y-h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0))
 
-              #cv2.namedWindow('preview',cv2.WINDOW_NORMAL)
-              #cv2.resizeWindow('preview', 960, 720)
-              #cv2.imshow("preview", frame)
 ##Pose
 
-#              test=image-image
-              if (args.demo == 'total' or args.demo == 'persons'):
-                  body_color=(128,0,0)
-                  image = TfPoseEstimator.draw_humans(image, humans, body_color, imgcopy=False)
 
-              if (args.save_video == True):
-                 out.write(image)
+   
+
+
 
               end_time = time.time()
               fps = 1 / (end_time - start_time)
               for pose in poses:
-                  cv2.putText(image,
-                        "FPS: %f " % (fps) + status + pose,
-                        (10, 10),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                        (255, 255, 255), 2)
+                  draw.text((10,5),"Fps: %.2f " % (round(fps,2)) + status + pose,font=font_title)
+#                  cv2.putText(image,
+#                        "FPS: %f " % (fps) + status + pose,
+#                        (10, 10),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+#                        (255, 255, 255), 2)
 
+              image=cv2.cvtColor(np.array(pil_img),cv2.COLOR_RGB2BGR)
               if (args.show_img == True):
                   cv2.imshow('tf-pose-estimation result', image)
 
@@ -420,11 +543,11 @@ if __name__ == "__main__":
 
         end_time_out = time.time()
        # print('TIME OUTPUT: ',end_time_out-start_time_out,' + ',(1/(end_time_out-start_time_out)))
-
+        frames+=1
         k = cv2.waitKey(1)
         if k == 0xFF & ord("q"):
             break
-
+print(frames) 
 out.release()
 cap.release()
 
