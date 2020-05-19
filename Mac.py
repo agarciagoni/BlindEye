@@ -59,7 +59,7 @@ def run_YOLO(image, ln, conf, threshold, net):
     
     return idxs, boxes, classIDs, confidences
 
-def annotate_image(image, idxs, boxes, COLORS, LABELS, confidences, classIDs):
+def annotate_image_box(image, idxs, boxes, COLORS, LABELS, confidences, classIDs):
     bounding_boxes = []
     if len(idxs) > 0:
         for i in idxs.flatten():
@@ -72,3 +72,11 @@ def annotate_image(image, idxs, boxes, COLORS, LABELS, confidences, classIDs):
             label = LABELS[classIDs[i]]
 
             draw_bounding_box(image, color, label, confidences[i], x, y, w, h)
+
+def annotate_image_label(draw, idxs, boxes, COLORS, LABELS, confidences, classIDs,frame_width,font,color):
+    if len(idxs) > 0:
+        for i in idxs.flatten():
+            (x, y) = (boxes[i][0], boxes[i][1])
+           # color = [int(c) for c in COLORS[classIDs[i]]]
+            label = LABELS[classIDs[i]]
+    draw.text((x,y-round(frame_width*0.019)),label,font=font,color=color)

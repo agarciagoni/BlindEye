@@ -33,9 +33,9 @@ def save_object(cat, score, bounds):
 
 def draw_bounding_box(image, color, label, conf, x, y, w, h):
     cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
-    text = "{}: {:.4f}".format(label, conf)
-    cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,
-        0.35, color, 2)
+    #text = "{}: {:.4f}".format(label, conf)
+    #cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,
+    #    0.35, color, 2)
 
 ## ---------------Open Pose-----------------##
 

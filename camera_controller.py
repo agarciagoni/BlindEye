@@ -1,5 +1,5 @@
 #------------------------- JETSON CAMERA OPENING ------------------------------
-
+import cv2
 def open_cam_rtsp(uri, width, height, latency):
     gst_str = ('rtspsrc location={} latency={} ! '
                'rtph264depay ! h264parse ! omxh264dec ! '

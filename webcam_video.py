@@ -55,8 +55,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from datetime import datetime
-from PIL import Image
-# from pydarknet import Detector, Image
+from PIL import Image as Image_pil
+from pydarknet import Detector, Image
 from utils import is_moving, object_interaction, save_object, str2bool, draw_bounding_box
 
 saved=[]
@@ -265,7 +265,7 @@ if __name__ == "__main__":
             ######### ONLY FOR MAC #########
             ################################
 
-            if args.demo == 'total' or args.demo == 'objects' and args.system == 'Mac':
+            if (args.demo == 'total' or args.demo == 'objects') and args.system == 'Mac':
                 from Mac import run_YOLO
                 idxs, boxes, classIDs, confidences = run_YOLO(image, ln, args.confidence, args.threshold, net)
 
@@ -305,7 +305,7 @@ if __name__ == "__main__":
             if args.system == 'Other':
 
                 if results:
-                    print('objects detected')
+                   # print('objects detected')
                     
                     for obj in results:
                         for measure in args.objects:
@@ -335,12 +335,12 @@ if __name__ == "__main__":
                     for cat, score, bounds in results:
                         x, y, w, h = bounds
                         objects+=str((str(cat.decode("utf-8")),round(score,3)))
-                        print(objects)
+                       # print(objects)
                         if cat.decode("utf-8")=='cup':
                             if saved:
-                                print(saved)
+                            #    print(saved)
                                 for obj in saved:
-                                    print(obj[0])
+                                    #print(obj[0])
                                     if ('cup' not in obj[0]):
                                         count=0
                                         save_object(cat, score, bounds)
@@ -415,11 +415,11 @@ if __name__ == "__main__":
             end_time_pos = time.time()
 
             ## Delete when actually testing ##
-            try:
-                print('TIME POSE: ',end_time_pos-start_time_pos,' + ',(1/(end_time_pos-start_time_pos)))
-            except ZeroDivisionError:
-                print('No pose detected')
-                break
+     #       try:
+     #           print('TIME POSE: ',end_time_pos-start_time_pos,' + ',(1/(end_time_pos-start_time_pos)))
+     #       except ZeroDivisionError:
+     #           print('No pose detected')
+     #           break
 
 #--------------------- activity output ----------------------------------------
             initial_x=10
@@ -432,26 +432,26 @@ if __name__ == "__main__":
      #       elif frames<190: video_subtitle='Kids Playing'
            # video_subtitle='Wheelchair user in the kitchen'
             #draw.text((initial_x,initial_y+label_step),video_subtitle,font=font_subtitle,fill=color_font)
-            if frames <50: video_subtitle2='Performance'
-            elif frames <100: video_subtitle2='Performance: stable movement with oil bottle'
-            elif frames<375: video_subtitle2='Performance: good accuracy'
+          #  if frames <50: video_subtitle2='Performance'
+          # elif frames <100: video_subtitle2='Performance: stable movement with oil bottle'
+          #  elif frames<375: video_subtitle2='Performance: good accuracy'
           
-            draw.text((initial_x,initial_y+1*label_step),video_subtitle2,font=font_subtitle,fill=color_font)
-            color_font1=(255,255,255)
-            if frames <75: video_subtitle3='Level of independence: 3 / 5'
-            elif frames<200: 
-                color_font1=(255,255,255)
-                video_subtitle3='Level of independence: 4 / 5'
-            elif frames<=375:
-                video_subtitle3='Level of independence: 4 / 5 - Check fire temperature'
-                color_font1=(255,0,0)
+            #draw.text((initial_x,initial_y+1*label_step),video_subtitle2,font=font_subtitle,fill=color_font)
+ #           color_font1=(255,255,255)
+  #          if frames <75: video_subtitle3='Level of independence: 3 / 5'
+   #         elif frames<200: 
+    #            color_font1=(255,255,255)
+     #           video_subtitle3='Level of independence: 4 / 5'
+      #      elif frames<=375:
+       #         video_subtitle3='Level of independence: 4 / 5 - Check fire temperature'
+        #        color_font1=(255,0,0)
      
-            draw.text((initial_x,initial_y+2*label_step),video_subtitle3,font=font_subtitle,fill=color_font1)
+            #draw.text((initial_x,initial_y+2*label_step),video_subtitle3,font=font_subtitle,fill=color_font1)
             
             
-            initial_x2=frame_width/2-200
-            initial_y2=frame_height-5-round(frame_width*0.024)
-            label_step=round(frame_width*0.024)
+            initial_x2=10
+            initial_y2=10+round(frame_width*0.024)
+            label_step=-round(frame_width*0.024)
             try:
                 rooms,main_room=locate_activity(objects_list)
                 room_label='In the: ' + main_room+' with : '+str(rooms[main_room])
@@ -495,7 +495,8 @@ if __name__ == "__main__":
               for cat, score, bounds in results:
                 x, y, w, h = bounds
                    
-                if (y-h/2)<(initial_y+4*label_step) and (x-w/2) < (frame_width/4): print(str(cat.decode("utf-8")),(y-h/2))
+                if (y-h/2)<(initial_y+4*label_step) and (x-w/2) < (frame_width/4):                    
+                    print(str(cat.decode("utf-8")),(y-h/2))
            #     if str(cat.decode("utf-8")) == 'Person' : draw.text((int(x-w/2), int(y-h/2)-round(frame_width*0.021)), 'Child',font=font_objects,fill=color_font)       
                 else: draw.text((int(x-w/2), int(y-h/2)-round(frame_width*0.021)), str(cat.decode("utf-8")),font=font_objects,fill=color_font)
               
@@ -519,8 +520,8 @@ if __name__ == "__main__":
 
               end_time = time.time()
               fps = 1 / (end_time - start_time)
-              for pose in poses:
-                  draw.text((10,5),"Fps: %.2f " % (round(fps,2)) + status + pose,font=font_title)
+#              for pose in poses:  
+      #            draw.text((10,5),"Fps: %.2f " % (round(fps,2)) + status + pose,font=font_title)
 #                  cv2.putText(image,
 #                        "FPS: %f " % (fps) + status + pose,
 #                        (10, 10),  cv2.FONT_HERSHEY_SIMPLEX, 0.5,
