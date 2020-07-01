@@ -142,7 +142,7 @@ def parse_args():
                         help='image height [720]',
                         default=1080, type=int)
 
-    parser.add_argument('--save_video', type=bool, default=False,
+    parser.add_argument('--save_video', type=bool, default=True,
                         help= 'To write output video.')
     parser.add_argument('--video_input', type=str,
                         help= 'File of the video to analyze')
@@ -201,11 +201,11 @@ if __name__ == "__main__":
         cap = cv2.VideoCapture(args.camera)
     elif(args.input_type == 'video'):
         cap = cv2.VideoCapture(args.video_input)
-
+    
+    frame_width=int(cap.get(3))
+    frame_height=int(cap.get(4))
     #Video write
-    if (args.save_video==True):
-        frame_width=int(cap.get(3))
-        frame_height=int(cap.get(4))
+    if (args.save_video==True):   
         if frame_width > args.image_width:
                 frame_width=args.image_width
                 frame_height=args.image_height
@@ -520,6 +520,7 @@ if __name__ == "__main__":
 
               end_time = time.time()
               fps = 1 / (end_time - start_time)
+             # print(fps)
 #              for pose in poses:  
       #            draw.text((10,5),"Fps: %.2f " % (round(fps,2)) + status + pose,font=font_title)
 #                  cv2.putText(image,
@@ -539,7 +540,7 @@ if __name__ == "__main__":
 
 # print(results) Seems like results is a dict with the name,probability, bounds(4 puntos).
         else:
-            print("Video complete")
+            print("Video complete or not camera detected")
             break
 
         end_time_out = time.time()
