@@ -57,6 +57,7 @@ $ python3 blindeye.py --resize 432x368
 ```
 The resize argument is optional but recommended with a good ratio fps/accuracy.
 
+
 #### Interesting arguments
 
 You can find an explanation of the main customizable arguments here https://github.com/agarciagoni/BlindEye/blob/master/arguments.txt
@@ -64,4 +65,11 @@ You can find an explanation of the main customizable arguments here https://gith
 An example on how to run the code with several arguments:
 ```bash
 $ python3 blindeye.py --device jetson --resize 432x368 --input_type cam --camera 1 --width 960 --height 720 --demo total --cfg cfg/yolov3.cfg --weights weights/yolov3.weights --thresh 0.7 --tensorrt True --save_video True --server True
+```
+### Extra features
+To new features are added, "Language Learning" that translate into chinese the objects picked, and "Actuator" that connects the object recognition with LEDs and actuators as a first step to connect the recognition with the reality.
+To run them:
+```bash
+$ python3 blindeye_language.py 
+$ python3 blindeye_actuator.py 
 ```
