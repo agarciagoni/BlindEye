@@ -6,9 +6,9 @@ import time
 objs=['cup','bottle','cell phone', 'book']
 language1="en-us"
 language2 = "zh-cn"
-speech_eng=['this is a cup','this is a bottle','this is a cell phone','this is a book']
-speech_ch=['这是杯子','这是一瓶','这是一部手机','这是一本书']
-speech_eng1=['i pick the cup to drink tea','You drink water from the bottle','You can call mum using the cellphone','books are full of stories]
+speech_eng=['this is a cup ','this is a bottle ','this is a cell phone ','this is a book ']
+speech_ch=['这是杯子 ','这是一瓶 ','这是一部手机 ','这是一本书 ']
+speech_eng1=[' , i pick the cup to drink tea',' , You drink water from the bottle',' , You can call mum using the cellphone',' , books are full of stories']
 speech_ch1=['我摘杯子喝茶','你从瓶子里喝水','你可以用手机打电话给妈妈','书中充满故事']
 
 
@@ -70,10 +70,10 @@ def parse_args():
 
     parser.add_argument('--width', dest='image_width',
                         help='image width [960]',
-                        default=640, type=int)
+                        default=960, type=int)
     parser.add_argument('--height', dest='image_height',
                         help='image height [720]',
-                        default=480, type=int)
+                        default=720, type=int)
 
     parser.add_argument('--save_video', type=bool, default=False,
                         help= 'To write output video.')
@@ -128,6 +128,7 @@ if __name__ == "__main__":
     engine = pyttsx3.init()
     engine.setProperty("rate", 150)
     voices = engine.getProperty("voices")
+    obj_prev=''
     while True:
         objects_tolist=''
         start_time=time.time()
@@ -187,17 +188,17 @@ if __name__ == "__main__":
         cv2.imshow('Basic YOLO', image)
         for j in classIDs: #for cat, score, bounds in results:
             for i in range(len(objs)):
-                if LABELS[j] in objs[i]:
-
+                if LABELS[j] in objs[i] and LABELS[j] not in obj_prev:
+                    obj_prev=objs[i]
                     
                     engine.setProperty("voice", voices[1].id)
-                    engine.say(speech_eng[i])
+                    engine.say(speech_eng[i]+speech_eng1[i])
                     engine.setProperty("voice", voices[3].id)
-                    engine.say(speech_ch[i])
-                    engine.setProperty("voice", voices[1].id)
-                    engine.say(speech_eng1[i])
-                    engine.setProperty("voice", voices[3].id)
-                    engine.say(speech_ch1[i])
+                    engine.say(speech_ch[i]+speech_ch1[i])
+#                    engine.setProperty("voice", voices[1].id)
+#                    engine.say(speech_eng1[i])
+#                    engine.setProperty("voice", voices[3].id)
+#                    engine.say(speech_ch1[i])
                     cv2.putText(image, str(speech_eng[i]+' : '+speech_ch[i]), (30, 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
 #                    engine.setProperty("voice", voices[0].id)
 #                    engine.say(text_en1)
