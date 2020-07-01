@@ -19,7 +19,7 @@ import Jetson.GPIO as GPIO
 input_pin = 18  # BCM pin 18, BOARD pin 12
 pin_servo1= 13
 pin_servo2=15
-led_pins=[40,38,33]
+led_pins=[40,38,35]
 
 #------------------------- IMPROVED VISUALS ------------------------------
 
@@ -68,6 +68,7 @@ def parse_args():
     parser.add_argument('--camera', type=int, default=1)
     parser.add_argument('--input_type', type=str, default='cam',
                         help='Camera or video')
+    parser.add_argument('--model', type=str, default='mobilenet_thin', help='cmu / mobilenet_thin / mobilenet_v2_large / mobilenet_v2_small')
 
     parser.add_argument('--width', dest='image_width',
                         help='image width [960]',
@@ -211,13 +212,16 @@ if __name__ == "__main__":
                     GPIO.output(pin_servo1,GPIO.LOW)
                     GPIO.output(pin_servo2,GPIO.HIGH)
                     draw.text((10, 10), 'Object: Cup + Bottle'+' : Bringing the bottle opener',font=font_objects,fill=(0,255,0))
-                elif 'Cup' in objects:
+                elif 'Cup' in objects or 'Bottle' in objects:
                     value_str = "LOW"
                     GPIO.output(led_pins,GPIO.LOW)
                     GPIO.output(led_pins[1],GPIO.HIGH)
                     GPIO.output(pin_servo1,GPIO.LOW)
-                    GPIO.output(pin_servo2,GPIO.LOW)
-                    draw.text((10, 10), 'Object: Cup',font=font_objects,fill=(255,153,51))
+                    GPIO.output(pin_servo2,GPIO.LOW) 
+                    if 'Cup' in objects:
+                       draw.text((10, 10), 'Object: Cup',font=font_objects,fill=(255,153,51))
+                    else:
+                       draw.text((10, 10), 'Object: Bottle',font=font_objects,fill=(255,153,51))
                 else:
                     value_str = "LOW"
                     GPIO.output(led_pins,GPIO.LOW)
